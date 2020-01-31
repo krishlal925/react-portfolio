@@ -18,3 +18,9 @@ code {
   align-items: center;
   background-color: teal;
 }
+
+.main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
