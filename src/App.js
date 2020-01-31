@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect}from 'react';
 import axios from 'axios';
 
 
@@ -21,22 +21,22 @@ const fetchUser = async ()=> {
   return  user;
 };
 
-function Nav({user}){
+function Nav({user, changeUser}){
 console.log(user.email)
   return(
 
     <div className= "nav">
-      <ul>
-        <li>
-          <img class="avatar avatar-96 img-circle" src= {`${user.avatar}`} />
-        </li>
-        <li>
-          {user.email}
-        </li>
-        <li>
-          <button>Change User</button>
-        </li>
-      </ul>
+
+      <div>
+        <img class="avatar avatar-96 img-circle" src= {`${user.avatar}`} />
+      </div>
+      <div>
+        {user.email}
+      </div>
+      <div>
+        <button onClick={changeUser} >Change User</button>
+      </div>
+
     </div>
 
   );
@@ -44,19 +44,23 @@ console.log(user.email)
 
 
  function App() {
+  const [user, setUser] = useState('')
 
-  let user = fetchUser()
-  .then((user) => console.log(user))
-  .then(() =>{
+  useEffect(() => {
+    fetchUser()
+    .then((user) => setUser(user))
+  }, [])
 
+  const changeUser = () =>{
+    window.localStorage.removeItem('userId')
+    fetchUser()
+      .then((user)=> setUser(user) )
+  }
     return (
       <div className="App">
-        <Nav user = {user}/>
+        <Nav user = {user} changeUser = {changeUser}/>
       </div>
     );
-  })
-
-  return null;
 }
 
 export default App;
