@@ -24,10 +24,11 @@ const fetchUser = async ()=> {
 // Next 4 functions are Components. Maybe move to seperate files later
 
 function Nav({user, changeUser}){
+  console.log(user);
   return(
     <div className= "nav">
       <div>
-        <img class="avatar avatar-96 img-circle" src= {`${user.avatar}`}  alt = "avatar"/>
+        <a href="#" >  <img class="avatar avatar-96 img-circle" src= {`${user.avatar}`}  alt = "avatar"/> </a>
       </div>
       <div>
         {user.email}
@@ -39,10 +40,24 @@ function Nav({user, changeUser}){
   );
 }
 
+function Home ({notes, vacations, following}){
+  return(
+    <div>
+      <p><h2>Home</h2></p>
+      <div className= "main">
+        <NotesCircle notes = {notes}/>
+        <VacationsCircle vacations = {vacations}/>
+        <FollowingCircle following = {following}/>
+      </div>
+    </div>
+  )
+}
+
 function NotesCircle ({notes}){
+
   return (
     <div className= "cards rounded-circle">
-      <h3><a href="#notes"> Notes</a></h3>
+      <h3><a href={`#${qs.stringify({view: 'notes'})}`}> Notes</a></h3>
       <p>You have {notes.length} notes.</p>
     </div>
   );
@@ -55,7 +70,7 @@ function NotesPage ({notes}){
           notes.map((note) =>{
             return(
               <li>
-                {note}
+                {note.text}
               </li>
             )
           })
@@ -65,10 +80,40 @@ function NotesPage ({notes}){
 }
 
 function VacationsCircle ({vacations}){
+  console.log(vacations)
   return (
     <div className= "cards rounded-circle">
-      <h3>Vacations</h3>
+      <h3><a href={`#${qs.stringify({view: 'vacations'})}`}>Vacations</a></h3>
       <p>You have {vacations.length} vacations.</p>
+    </div>
+  );
+}
+
+function VacationsPage ({vacations}){
+  console.log(vacations)
+  return(
+    <div>
+      <p><h2>Vacations</h2></p>
+      <form>
+      <input class="form-control" type="date" value="2020-01-01" id="start-date" />
+      <input class="form-control" type="date" value="2020-01-30" id="end-date" />
+      <button>Submit</button>
+      </form>
+
+      <ul>
+        {
+          vacations.map((vacation) =>{
+            return(
+
+              <li>
+                <p>Start date: { vacation.startDate}</p>
+                <p>Start date: { vacation.endDate}</p>
+              </li>
+
+            )
+          })
+        }
+      </ul>
     </div>
   );
 }
@@ -94,15 +139,14 @@ async function getVacations(user){
 
 async function getFollowing(user){
   let following = await axios.get(`${API}/users/${user.id}/followingCompanies`)
-  console.log(following);
   return following;
 }
 
  function App() {
-  const [user, setUser] = useState('');
-  const [notes, setNotes] = useState('');
-  const [vacations, setVacations]= useState('');
-  const [following, setFollowing] = useState('');
+  const [user, setUser] = useState({});
+  const [notes, setNotes] = useState([]);
+  const [vacations, setVacations]= useState([]);
+  const [following, setFollowing] = useState([]);
 
   // lines 90 -101 used for routing
   const getHash = ()=> {
@@ -115,11 +159,13 @@ async function getFollowing(user){
       setParams(qs.parse(getHash()));
     });
     setParams(qs.parse(getHash()));
+    console.log(params)
   }, []);
 
   useEffect(() => {
     fetchUser()
     .then((user) => setUser(user))
+    .then(()=> console.log(user))
   }, [])
 
   useEffect(() =>{
@@ -141,15 +187,15 @@ async function getFollowing(user){
       .then((user)=> setUser(user) )
   }
 
-
     return (
       <div className="App">
         <Nav user = {user} changeUser = {changeUser}/>
-        <div className= "main">
-          <NotesCircle notes = {notes}/>
-          <VacationsCircle vacations = {vacations}/>
-          <FollowingCircle following = {following}/>
-        </div>
+        <main>
+          {params.view === undefined && <Home notes = {notes} vacations = {vacations} following = {following} />}
+          {params.view === "notes" && <NotesPage notes = {notes}/>}
+          {params.view === "vacations" && <VacationsPage vacations = {vacations}/>}
+        </main>
+
       </div>
 
     );
