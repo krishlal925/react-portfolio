@@ -1,6 +1,6 @@
 import React, { useState, useEffect}from 'react';
 import axios from 'axios';
-
+import qs from 'qs';
 
 const API = 'https://acme-users-api-rev.herokuapp.com/api';
 
@@ -39,26 +39,43 @@ function Nav({user, changeUser}){
   );
 }
 
-function Notes ({notes}){
+function NotesCircle ({notes}){
   return (
-    <div className= "divisions">
-      <h3>Notes</h3>
+    <div className= "cards rounded-circle">
+      <h3><a href="#notes"> Notes</a></h3>
       <p>You have {notes.length} notes.</p>
     </div>
   );
 }
-function Vacations ({vacations}){
+
+function NotesPage ({notes}){
   return (
-    <div className= "divisions">
+    <ul>
+      {
+          notes.map((note) =>{
+            return(
+              <li>
+                {note}
+              </li>
+            )
+          })
+      }
+    </ul>
+  )
+}
+
+function VacationsCircle ({vacations}){
+  return (
+    <div className= "cards rounded-circle">
       <h3>Vacations</h3>
       <p>You have {vacations.length} vacations.</p>
     </div>
   );
 }
 
-function Following ({following}){
+function FollowingCircle ({following}){
   return(
-    <div className= "divisions">
+    <div className= "cards rounded-circle">
       <h3>Following Companies</h3>
       <p>You are following {following.length} companies.</p>
     </div>
@@ -86,6 +103,19 @@ async function getFollowing(user){
   const [notes, setNotes] = useState('');
   const [vacations, setVacations]= useState('');
   const [following, setFollowing] = useState('');
+
+  // lines 90 -101 used for routing
+  const getHash = ()=> {
+    return window.location.hash.slice(1);
+  }
+  const [ params, setParams ] = useState(qs.parse(getHash()));
+
+  useEffect(()=> {
+    window.addEventListener('hashchange', ()=> {
+      setParams(qs.parse(getHash()));
+    });
+    setParams(qs.parse(getHash()));
+  }, []);
 
   useEffect(() => {
     fetchUser()
@@ -116,9 +146,9 @@ async function getFollowing(user){
       <div className="App">
         <Nav user = {user} changeUser = {changeUser}/>
         <div className= "main">
-          <Notes notes = {notes}/>
-          <Vacations vacations = {vacations}/>
-          <Following following = {following}/>
+          <NotesCircle notes = {notes}/>
+          <VacationsCircle vacations = {vacations}/>
+          <FollowingCircle following = {following}/>
         </div>
       </div>
 

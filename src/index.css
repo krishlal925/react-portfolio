@@ -15,6 +15,7 @@ code {
 .nav {
   display: flex;
   justify-content: space-between;
+
   align-items: center;
   background-color: teal;
 }
@@ -22,5 +23,13 @@ code {
 .main {
   display: flex;
   justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
+  padding-top: 2rem;
+}
+
+.cards {
+  background-color: teal;
+  margin: 2rem;
+  padding: 2rem;
 }
