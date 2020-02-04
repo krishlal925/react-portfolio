@@ -1,6 +1,7 @@
 import React, { useState, useEffect}from 'react';
 import axios from 'axios';
 import qs from 'qs';
+import moment from 'moment';
 
 const API = 'https://acme-users-api-rev.herokuapp.com/api';
 
@@ -24,7 +25,7 @@ const fetchUser = async ()=> {
 // Next 4 functions are Components. Maybe move to seperate files later
 
 function Nav({user, changeUser}){
-  console.log(user);
+
   return(
     <div className= "nav">
       <div>
@@ -67,9 +68,9 @@ function NotesPage ({notes}){
   return (
     <ul>
       {
-          notes.map((note) =>{
+          notes.map((note, idx) =>{
             return(
-              <li>
+              <li key = {idx} >
                 {note.text}
               </li>
             )
@@ -80,7 +81,7 @@ function NotesPage ({notes}){
 }
 
 function VacationsCircle ({vacations}){
-  console.log(vacations)
+
   return (
     <div className= "cards rounded-circle">
       <h3><a href={`#${qs.stringify({view: 'vacations'})}`}>Vacations</a></h3>
@@ -89,25 +90,30 @@ function VacationsCircle ({vacations}){
   );
 }
 
-function VacationsPage ({vacations}){
-  console.log(vacations)
+function VacationsPage ({vacations, newVacation, setNewVacation, addVacation, deleteVacation}){
+
+
   return(
     <div>
-      <p><h2>Vacations</h2></p>
-      <form>
-      <input class="form-control" type="date" value="2020-01-01" id="start-date" />
-      <input class="form-control" type="date" value="2020-01-30" id="end-date" />
-      <button>Submit</button>
+      <h2><p>Vacations</p></h2>
+      <form onSubmit= {(ev) => ev.preventDefault()} >
+        <input class="form-control" type="date" value= {newVacation.startDate}
+          id="start-date" onChange = {(ev) => setNewVacation({...newVacation, startDate: ev.target.value})} />
+        <input class="form-control" type="date" value= {newVacation.endDate}
+          id="end-date" onChange = {(ev) => setNewVacation({...newVacation, endDate: ev.target.value})}/>
+        <button onClick= {()=> addVacation(newVacation)} >Submit</button>
       </form>
 
       <ul>
         {
-          vacations.map((vacation) =>{
+          vacations.map((vacation, idx) =>{
             return(
 
-              <li>
-                <p>Start date: { vacation.startDate}</p>
-                <p>Start date: { vacation.endDate}</p>
+              <li key={idx} >
+                <h4><p>Vacation: {idx + 1}</p></h4>
+                <p>Start date: { moment(vacation.startDate).format('MM/DD/YYYY')}</p>
+                <p>End date: { moment(vacation.endDate).format('MM/DD/YYYY')}</p>
+                <button onClick= {()=> deleteVacation(vacation)}> Delete</button>
               </li>
 
             )
@@ -147,8 +153,9 @@ async function getFollowing(user){
   const [notes, setNotes] = useState([]);
   const [vacations, setVacations]= useState([]);
   const [following, setFollowing] = useState([]);
+  const [newVacation, setNewVacation] = useState({startDate: "2020-01-01" , endDate: "2020-01-01"})
 
-  // lines 90 -101 used for routing
+  // lines 158 -168 used for routing
   const getHash = ()=> {
     return window.location.hash.slice(1);
   }
@@ -159,13 +166,11 @@ async function getFollowing(user){
       setParams(qs.parse(getHash()));
     });
     setParams(qs.parse(getHash()));
-    console.log(params)
   }, []);
 
   useEffect(() => {
     fetchUser()
     .then((user) => setUser(user))
-    .then(()=> console.log(user))
   }, [])
 
   useEffect(() =>{
@@ -174,26 +179,45 @@ async function getFollowing(user){
         .then((notes)=> setNotes(notes.data))
       getVacations(user)
         .then((vacations) => setVacations(vacations.data))
-        .then((vacations) => console.log(vacations))
       getFollowing(user)
         .then((following) => setFollowing(following.data));
    }
   },[user])
 
-
+// change user button in nav
   const changeUser = () =>{
     window.localStorage.removeItem('userId')
     fetchUser()
       .then((user)=> setUser(user) )
   }
 
+  //add vacation function used on vacation page
+  async function addVacation(newVacation){
+    await axios.post(`${API}/users/${user.id}/vacations`, { startDate: newVacation.startDate, endDate: newVacation.endDate })
+
+    await getVacations(user)
+    .then((vacations) => setVacations(vacations.data))
+  }
+
+  //delete vacation button
+  async function deleteVacation(vacation){
+    console.log(vacation);
+    await axios.delete(`${API}/users/${user.id}/vacations/${vacation.id}`)
+
+    await getVacations(user)
+    .then((vacations) => setVacations(vacations.data))
+  }
+
     return (
       <div className="App">
         <Nav user = {user} changeUser = {changeUser}/>
         <main>
-          {params.view === undefined && <Home notes = {notes} vacations = {vacations} following = {following} />}
+          {params.view === undefined && <Home notes = {notes} vacations = {vacations}
+            following = {following} />}
           {params.view === "notes" && <NotesPage notes = {notes}/>}
-          {params.view === "vacations" && <VacationsPage vacations = {vacations}/>}
+          {params.view === "vacations" && <VacationsPage vacations = {vacations}
+            newVacation = {newVacation} setNewVacation = {setNewVacation}
+            addVacation= {addVacation} deleteVacation= {deleteVacation}/>}
         </main>
 
       </div>
